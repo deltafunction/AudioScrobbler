@@ -8,7 +8,7 @@ package Slim::Plugin::AudioScrobbler::Settings;
 use strict;
 use base qw(Slim::Web::Settings);
 
-use Digest::MD5 qw(md5_hex);
+#use Digest::MD5 qw(md5_hex);
 
 use Slim::Utils::Log;
 use Slim::Utils::Prefs;
@@ -30,7 +30,6 @@ sub prefs {
 
 sub handler {
 	my ($class, $client, $params, $callback, @args) = @_;
-
 	if ( $params->{saveSettings} ) {
 		
 		# Save existing accounts
@@ -60,12 +59,13 @@ sub handler {
 		
 		# Save new account
 		if ( $params->{pref_password} ) {
-			$params->{pref_password} = md5_hex( $params->{pref_password} );
+			#$params->{pref_password} = md5_hex( $params->{pref_password} );
+			#$params->{pref_password} = $params->{pref_password};
 		}
-		
 		# If the user added a username/password, we need to verify their info
 		if ( $params->{pref_username} && $params->{pref_password} ) {
 			Slim::Plugin::AudioScrobbler::Plugin::handshake( {
+				client => $client,
 				username => $params->{pref_username},
 				password => $params->{pref_password},
 				pref_accounts => $params->{pref_accounts},
@@ -78,9 +78,7 @@ sub handler {
 						password => $params->{pref_password},
 					};
 
-					if ( main::DEBUGLOG && $log->is_debug ) {
-						$log->debug( "Saving Audioscrobbler accounts: " . Data::Dump::dump( $params->{pref_accounts} ) );
-					}
+					$log->info( "Saving Audioscrobbler accounts: " . Data::Dump::dump( $params->{pref_accounts} ) );
 
 					my $msg  = Slim::Utils::Strings::string('PLUGIN_AUDIOSCROBBLER_VALID_LOGIN');
 					my $body = $class->SUPER::handler( $client, $params );
@@ -99,9 +97,7 @@ sub handler {
 					# Callback for any errors
 					my $error = shift;
 
-					if ( main::DEBUGLOG && $log->is_debug ) {
-						$log->debug( "Error saving Audioscrobbler account: " . Data::Dump::dump( $error ) );
-					}
+					$log->error( "Error saving Audioscrobbler account: " . Data::Dump::dump( $error ) );
 					
 					$error = Slim::Utils::Strings::string( 'SETUP_PLUGIN_AUDIOSCROBBLER_LOGIN_ERROR', $error );
 
